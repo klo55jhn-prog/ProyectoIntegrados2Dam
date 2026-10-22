@@ -254,5 +254,7 @@ private fun BottomBar() {
 @Preview(showBackground = true, widthDp = 390, heightDp = 844)
 @Composable
 private fun LlavesScreenPreview() {
-    LlavesScreen()
+    AppLlavesTheme {
+        LlavesScreen()
+    }
 }
