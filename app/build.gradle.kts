@@ -5,12 +5,12 @@ plugins {
 }
 
 android {
-    namespace = "com.iesejemplo.llaves"
+    namespace = "com.utad.llaves"
     compileSdk = 34
     buildToolsVersion = "34.0.0"
 
     defaultConfig {
-        applicationId = "com.iesejemplo.llaves"
+        applicationId = "com.utad.llaves"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
