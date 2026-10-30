@@ -60,10 +60,12 @@ class MainActivity : ComponentActivity() {
                     adapter.enableReaderMode(
                         this,
                         { tag: Tag ->
-                            sendBroadcast(Intent(INTENT_ACTION_NFC_READ).apply {
-                                putExtra(NfcAdapter.EXTRA_TAG, tag)
-                                setPackage(packageName)
-                            })
+                            runOnUiThread {
+                                sendBroadcast(Intent(INTENT_ACTION_NFC_READ).apply {
+                                    putExtra(NfcAdapter.EXTRA_TAG, tag)
+                                    setPackage(packageName)
+                                })
+                            }
                         },
                         NfcAdapter.FLAG_READER_NFC_A or
                                 NfcAdapter.FLAG_READER_NFC_B or

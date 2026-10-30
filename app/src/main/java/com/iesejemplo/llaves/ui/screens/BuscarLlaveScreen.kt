@@ -421,7 +421,7 @@ fun BuscarLlaveScreen() {
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
                         text = "¡Verificación completada!",
@@ -431,10 +431,48 @@ fun BuscarLlaveScreen() {
                     )
 
                     Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = "Acerca otra tarjeta NFC para registrar una nueva llave",
+                        fontSize = 13.sp,
+                        color = Color.White.copy(alpha = 0.8f),
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Botón para escanear otra llave
+                    OutlinedButton(
+                        onClick = {
+                            pasoActual = PasoEscaner.PASO_1_NFC
+                            nfcTagId = null
+                            qrCarnetData = null
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(20.dp))
+                            Text(
+                                text = "Escanear otra llave",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
 
-            // Botón Reiniciar Proceso (se oculta cuando sale la información final en el Paso 3)
+            // Botón Reiniciar Proceso en los pasos 1 y 2
             if (pasoActual != PasoEscaner.PASO_3_RESULTADO) {
                 Spacer(modifier = Modifier.height(20.dp))
                 OutlinedButton(
