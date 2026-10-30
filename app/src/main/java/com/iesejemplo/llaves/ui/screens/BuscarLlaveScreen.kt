@@ -25,12 +25,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iesejemplo.llaves.ui.theme.AppLlavesTheme
+import com.iesejemplo.llaves.util.NfcBroadcastReceiver
 
 @Composable
 fun BuscarLlaveScreen() {
     var searchQuery by remember { mutableStateOf("") }
+    var lastScannedTag by remember { mutableStateOf<String?>(null) }
     val screenBackground = Color(0xFF0F264A)
     val orangeCircle = Color(0xFFF2994A)
+
+    NfcBroadcastReceiver { tag ->
+        val tagIdHex = tag.id.joinToString("") { "%02X".format(it) }
+        lastScannedTag = tagIdHex
+        searchQuery = tagIdHex
+    }
 
     Scaffold(
         containerColor = screenBackground,
@@ -185,10 +193,10 @@ fun BuscarLlaveScreen() {
 
             // Scanning texts
             Text(
-                text = "Escaneando...",
+                text = if (lastScannedTag != null) "¡Tarjeta leída!" else "Escaneando...",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = if (lastScannedTag != null) Color(0xFF81C784) else Color.White
             )
 
             Spacer(modifier = Modifier.height(8.dp))
