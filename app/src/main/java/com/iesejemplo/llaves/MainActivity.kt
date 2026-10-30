@@ -64,7 +64,7 @@ class MainActivity : ComponentActivity() {
                         this,
                         0,
                         Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-                        PendingIntent.FLAG_MUTABLE
+                        PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
                     )
                 } else {
                     PendingIntent.getActivity(
@@ -95,6 +95,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         sendBroadcast(Intent(INTENT_ACTION_NFC_READ).apply {
             putExtra(
                 NfcAdapter.EXTRA_TAG,

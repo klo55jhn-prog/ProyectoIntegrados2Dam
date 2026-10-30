@@ -85,11 +85,12 @@ fun BuscarLlaveScreen() {
     val screenBackground = Color(0xFF0F264A)
     val orangeCircle = Color(0xFFF2994A)
 
-    // PASO 1: Receptor NFC activo cuando está en el paso 1 o inicial
+    // PASO 1: Receptor NFC activo para escanear cualquier tarjeta
     NfcBroadcastReceiver { tag ->
-        if (pasoActual == PasoEscaner.PASO_1_NFC) {
+        if (pasoActual == PasoEscaner.PASO_1_NFC || pasoActual == PasoEscaner.PASO_3_RESULTADO) {
             val tagIdHex = tag.id.joinToString("") { "%02X".format(it) }
             nfcTagId = tagIdHex
+            qrCarnetData = null // Limpiar el carnet anterior para requerir un nuevo escaneo de carnet
             
             // Solicitar permiso de cámara si no lo tiene
             if (!hasCameraPermission) {
@@ -258,13 +259,15 @@ fun BuscarLlaveScreen() {
                         contentAlignment = Alignment.Center
                     ) {
                         if (hasCameraPermission) {
-                            CameraQrScannerView(
-                                onQrCodeScanned = { code ->
-                                    qrCarnetData = code
-                                    // Transición automática al PASO 3 (Resultado) sin tocar nada
-                                    pasoActual = PasoEscaner.PASO_3_RESULTADO
-                                }
-                            )
+                            key(pasoActual, nfcTagId) {
+                                CameraQrScannerView(
+                                    onQrCodeScanned = { code ->
+                                        qrCarnetData = code
+                                        // Transición automática al PASO 3 (Resultado) sin tocar nada
+                                        pasoActual = PasoEscaner.PASO_3_RESULTADO
+                                    }
+                                )
+                            }
                         } else {
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
