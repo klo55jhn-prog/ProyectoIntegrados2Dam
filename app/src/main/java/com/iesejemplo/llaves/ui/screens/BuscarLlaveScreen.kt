@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,9 +63,9 @@ enum class PasoEscaner {
 
 @Composable
 fun BuscarLlaveScreen() {
-    var pasoActual by remember { mutableStateOf(PasoEscaner.PASO_1_NFC) }
-    var nfcTagId by remember { mutableStateOf<String?>(null) }
-    var qrCarnetData by remember { mutableStateOf<String?>(null) }
+    var pasoActual by rememberSaveable { mutableStateOf(PasoEscaner.PASO_1_NFC) }
+    var nfcTagId by rememberSaveable { mutableStateOf<String?>(null) }
+    var qrCarnetData by rememberSaveable { mutableStateOf<String?>(null) }
     
     val context = LocalContext.current
     var hasCameraPermission by remember {
@@ -433,34 +434,35 @@ fun BuscarLlaveScreen() {
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Botón Reiniciar
-            OutlinedButton(
-                onClick = {
-                    pasoActual = PasoEscaner.PASO_1_NFC
-                    nfcTagId = null
-                    qrCarnetData = null
-                },
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = Color.White
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // Botón Reiniciar Proceso (se oculta cuando sale la información final en el Paso 3)
+            if (pasoActual != PasoEscaner.PASO_3_RESULTADO) {
+                Spacer(modifier = Modifier.height(20.dp))
+                OutlinedButton(
+                    onClick = {
+                        pasoActual = PasoEscaner.PASO_1_NFC
+                        nfcTagId = null
+                        qrCarnetData = null
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
                 ) {
-                    Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(20.dp))
-                    Text(
-                        text = if (pasoActual == PasoEscaner.PASO_3_RESULTADO) "Escanear otra llave" else "Reiniciar Proceso",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Text(
+                            text = "Reiniciar Proceso",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
 

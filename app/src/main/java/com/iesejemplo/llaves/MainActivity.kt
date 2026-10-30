@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -155,7 +156,7 @@ enum class Pantalla {
 
 @Composable
 fun MainLanzadera() {
-    var pantallaActual by remember { mutableStateOf(Pantalla.MENU) }
+    var pantallaActual by rememberSaveable { mutableStateOf(Pantalla.MENU) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (pantallaActual) {
