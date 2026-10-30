@@ -1,11 +1,8 @@
 package com.iesejemplo.llaves
 
-import android.app.PendingIntent
 import android.content.Intent
-import android.content.IntentFilter
 import android.nfc.NfcAdapter
 import android.nfc.Tag
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -55,7 +52,7 @@ class MainActivity : ComponentActivity() {
     private fun enableNfc() {
         nfcAdapter?.let { adapter ->
             if (adapter.isEnabled) {
-                // 1. Habilitar ReaderMode para callbacks directos instantáneos en cada toque
+                // Habilitar ReaderMode para callbacks silenciosos sin relanzar la Activity
                 try {
                     adapter.enableReaderMode(
                         this,
@@ -77,33 +74,6 @@ class MainActivity : ComponentActivity() {
                 } catch (e: Exception) {
                     Log.e("NFC", "Error enabling reader mode", e)
                 }
-
-                // 2. Habilitar ForegroundDispatch como respaldo
-                try {
-                    val nfcIntentFilter = arrayOf(
-                        IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED),
-                        IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED),
-                        IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)
-                    )
-                    val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        PendingIntent.getActivity(
-                            this,
-                            0,
-                            Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-                            PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-                        )
-                    } else {
-                        PendingIntent.getActivity(
-                            this,
-                            0,
-                            Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-                            PendingIntent.FLAG_UPDATE_CURRENT
-                        )
-                    }
-                    adapter.enableForegroundDispatch(this, pendingIntent, nfcIntentFilter, null)
-                } catch (e: Exception) {
-                    Log.e("NFC", "Error enabling foreground dispatch", e)
-                }
             }
         }
     }
@@ -114,11 +84,6 @@ class MainActivity : ComponentActivity() {
                 adapter.disableReaderMode(this)
             } catch (e: Exception) {
                 Log.e("NFC", "Error disabling reader mode", e)
-            }
-            try {
-                adapter.disableForegroundDispatch(this)
-            } catch (e: Exception) {
-                Log.e("NFC", "Error disabling foreground dispatch", e)
             }
         }
     }
@@ -143,7 +108,6 @@ class MainActivity : ComponentActivity() {
                 setPackage(packageName)
             })
         }
-        enableNfc()
     }
 }
 
