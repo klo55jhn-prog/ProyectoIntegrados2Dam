@@ -7,6 +7,7 @@ import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -50,59 +51,96 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun enableNfcForegroundDispatch() {
+    private fun enableNfc() {
         nfcAdapter?.let { adapter ->
             if (adapter.isEnabled) {
-                val nfcIntentFilter = arrayOf(
-                    IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED),
-                    IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED),
-                    IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)
-                )
-
-                val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    PendingIntent.getActivity(
+                // 1. Habilitar ReaderMode para callbacks directos instantáneos en cada toque
+                try {
+                    adapter.enableReaderMode(
                         this,
-                        0,
-                        Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-                        PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                        { tag: Tag ->
+                            sendBroadcast(Intent(INTENT_ACTION_NFC_READ).apply {
+                                putExtra(NfcAdapter.EXTRA_TAG, tag)
+                                setPackage(packageName)
+                            })
+                        },
+                        NfcAdapter.FLAG_READER_NFC_A or
+                                NfcAdapter.FLAG_READER_NFC_B or
+                                NfcAdapter.FLAG_READER_NFC_F or
+                                NfcAdapter.FLAG_READER_NFC_V or
+                                NfcAdapter.FLAG_READER_NFC_BARCODE,
+                        null
                     )
-                } else {
-                    PendingIntent.getActivity(
-                        this,
-                        0,
-                        Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                    )
+                } catch (e: Exception) {
+                    Log.e("NFC", "Error enabling reader mode", e)
                 }
-                adapter.enableForegroundDispatch(this, pendingIntent, nfcIntentFilter, null)
+
+                // 2. Habilitar ForegroundDispatch como respaldo
+                try {
+                    val nfcIntentFilter = arrayOf(
+                        IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED),
+                        IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED),
+                        IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)
+                    )
+                    val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        PendingIntent.getActivity(
+                            this,
+                            0,
+                            Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                            PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                        )
+                    } else {
+                        PendingIntent.getActivity(
+                            this,
+                            0,
+                            Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                        )
+                    }
+                    adapter.enableForegroundDispatch(this, pendingIntent, nfcIntentFilter, null)
+                } catch (e: Exception) {
+                    Log.e("NFC", "Error enabling foreground dispatch", e)
+                }
             }
         }
     }
 
-    private fun disableNfcForegroundDispatch() {
-        nfcAdapter?.disableForegroundDispatch(this)
+    private fun disableNfc() {
+        nfcAdapter?.let { adapter ->
+            try {
+                adapter.disableReaderMode(this)
+            } catch (e: Exception) {
+                Log.e("NFC", "Error disabling reader mode", e)
+            }
+            try {
+                adapter.disableForegroundDispatch(this)
+            } catch (e: Exception) {
+                Log.e("NFC", "Error disabling foreground dispatch", e)
+            }
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        enableNfcForegroundDispatch()
+        enableNfc()
     }
 
     override fun onPause() {
         super.onPause()
-        disableNfcForegroundDispatch()
+        disableNfc()
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        sendBroadcast(Intent(INTENT_ACTION_NFC_READ).apply {
-            putExtra(
-                NfcAdapter.EXTRA_TAG,
-                intent.getParcelableCompatibility(NfcAdapter.EXTRA_TAG, Tag::class.java)
-            )
-            setPackage(packageName)
-        })
+        val tag = intent.getParcelableCompatibility(NfcAdapter.EXTRA_TAG, Tag::class.java)
+        if (tag != null) {
+            sendBroadcast(Intent(INTENT_ACTION_NFC_READ).apply {
+                putExtra(NfcAdapter.EXTRA_TAG, tag)
+                setPackage(packageName)
+            })
+        }
+        enableNfc()
     }
 }
 

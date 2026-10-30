@@ -85,21 +85,19 @@ fun BuscarLlaveScreen() {
     val screenBackground = Color(0xFF0F264A)
     val orangeCircle = Color(0xFFF2994A)
 
-    // PASO 1: Receptor NFC activo para escanear cualquier tarjeta
+    // Receptor NFC siempre activo para escanear cualquier tarjeta
     NfcBroadcastReceiver { tag ->
-        if (pasoActual == PasoEscaner.PASO_1_NFC || pasoActual == PasoEscaner.PASO_3_RESULTADO) {
-            val tagIdHex = tag.id.joinToString("") { "%02X".format(it) }
-            nfcTagId = tagIdHex
-            qrCarnetData = null // Limpiar el carnet anterior para requerir un nuevo escaneo de carnet
-            
-            // Solicitar permiso de cámara si no lo tiene
-            if (!hasCameraPermission) {
-                permissionLauncher.launch(Manifest.permission.CAMERA)
-            }
-            
-            // Transición automática al PASO 2 (Cámara QR) sin tocar nada
-            pasoActual = PasoEscaner.PASO_2_CAMARA_QR
+        val tagIdHex = tag.id.joinToString("") { "%02X".format(it) }
+        nfcTagId = tagIdHex
+        qrCarnetData = null // Resetea el carnet anterior para exigir un nuevo escaneo de carnet
+        
+        // Solicitar permiso de cámara si no lo tiene
+        if (!hasCameraPermission) {
+            permissionLauncher.launch(Manifest.permission.CAMERA)
         }
+        
+        // Transición automática al PASO 2 (Cámara QR)
+        pasoActual = PasoEscaner.PASO_2_CAMARA_QR
     }
 
     Scaffold(
