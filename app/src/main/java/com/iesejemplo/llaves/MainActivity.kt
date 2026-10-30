@@ -8,17 +8,13 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -27,8 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iesejemplo.llaves.ui.screens.*
 import com.iesejemplo.llaves.ui.theme.AppLlavesTheme
-import com.iesejemplo.llaves.ui.theme.Navy
-import com.iesejemplo.llaves.ui.theme.Orange
 import com.iesejemplo.llaves.util.INTENT_ACTION_NFC_READ
 import com.iesejemplo.llaves.util.getParcelableCompatibility
 
@@ -44,7 +38,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AppLlavesTheme {
-                MainLanzadera()
+                AppPrincipal()
             }
         }
     }
@@ -111,161 +105,63 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-enum class Pantalla {
-    MENU,
-    BUSCAR_LLAVE,
-    LLAVES,
-    LOANS,
-    LOGIN,
-    INCIDENCIAS
+enum class SeccionApp(val titulo: String, val icono: ImageVector) {
+    BUSCAR_NFC("Escáner NFC", Icons.Default.Nfc),
+    LLAVES("Llaves", Icons.Default.GridView),
+    PRESTAMOS("Préstamos", Icons.AutoMirrored.Filled.List),
+    INCIDENCIAS("Incidencias", Icons.Default.Warning),
+    LOGIN("Perfil", Icons.Default.Person)
 }
 
 @Composable
-fun MainLanzadera() {
-    var pantallaActual by rememberSaveable { mutableStateOf(Pantalla.MENU) }
+fun AppPrincipal() {
+    var seccionActual by rememberSaveable { mutableStateOf(SeccionApp.BUSCAR_NFC) }
+    val darkBlue = Color(0xFF0F264A)
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        when (pantallaActual) {
-            Pantalla.MENU -> MenuLanzadera(onSeleccionar = { pantallaActual = it })
-            Pantalla.BUSCAR_LLAVE -> BuscarLlaveScreen()
-            Pantalla.LLAVES -> LlavesScreen()
-            Pantalla.LOANS -> LoansScreen()
-            Pantalla.LOGIN -> LoginScreen()
-            Pantalla.INCIDENCIAS -> IncidentsScreen(onSend = { _, _, _ -> })
-        }
-
-        // Botón flotante para regresar a la Lanzadera desde cualquier pantalla
-        if (pantallaActual != Pantalla.MENU) {
-            FloatingActionButton(
-                onClick = { pantallaActual = Pantalla.MENU },
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .padding(16.dp)
-                    .align(Alignment.TopStart),
-                containerColor = Orange,
-                contentColor = Color.White
+    Scaffold(
+        containerColor = darkBlue,
+        bottomBar = {
+            NavigationBar(
+                containerColor = Color.White,
+                contentColor = Color.Black,
+                tonalElevation = 8.dp
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    Text("Lanzadera", fontWeight = FontWeight.Bold)
+                SeccionApp.entries.forEach { seccion ->
+                    val selected = seccionActual == seccion
+                    NavigationBarItem(
+                        selected = selected,
+                        onClick = { seccionActual = seccion },
+                        icon = { Icon(seccion.icono, contentDescription = seccion.titulo) },
+                        label = {
+                            Text(
+                                text = seccion.titulo,
+                                fontSize = 11.sp,
+                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+                            )
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = darkBlue,
+                            selectedTextColor = darkBlue,
+                            unselectedIconColor = Color.Gray,
+                            unselectedTextColor = Color.Gray,
+                            indicatorColor = Color(0xFFE2E9F3)
+                        )
+                    )
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun MenuLanzadera(onSeleccionar: (Pantalla) -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0F264A))
-            .statusBarsPadding()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(Modifier.height(20.dp))
-        Text(
-            text = "🚀 Lanzadera de Pantallas",
-            color = Color.White,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = "Selecciona una ventana para probarla",
-            color = Color(0xFFC4D3E7),
-            fontSize = 15.sp,
-            modifier = Modifier.padding(top = 4.dp, bottom = 28.dp)
-        )
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
-            BotonLanzadera(
-                titulo = "1. BuscarLlaveScreen",
-                subtitulo = "Buscador y escáner NFC",
-                icono = Icons.Default.Search,
-                onClick = { onSeleccionar(Pantalla.BUSCAR_LLAVE) }
-            )
-
-            BotonLanzadera(
-                titulo = "2. Llaves",
-                subtitulo = "Estado de llaves del centro",
-                icono = Icons.Default.VpnKey,
-                onClick = { onSeleccionar(Pantalla.LLAVES) }
-            )
-
-            BotonLanzadera(
-                titulo = "3. LoansScreen",
-                subtitulo = "Gestión de préstamos activos",
-                icono = Icons.AutoMirrored.Filled.FormatListBulleted,
-                onClick = { onSeleccionar(Pantalla.LOANS) }
-            )
-
-            BotonLanzadera(
-                titulo = "4. Login",
-                subtitulo = "Pantalla de inicio de sesión",
-                icono = Icons.Default.Lock,
-                onClick = { onSeleccionar(Pantalla.LOGIN) }
-            )
-
-            BotonLanzadera(
-                titulo = "5. PantallaIncidencias",
-                subtitulo = "Reportar llaves rotas o perdidas",
-                icono = Icons.Default.Warning,
-                onClick = { onSeleccionar(Pantalla.INCIDENCIAS) }
-            )
-        }
-    }
-}
-
-@Composable
-private fun BotonLanzadera(
-    titulo: String,
-    subtitulo: String,
-    icono: ImageVector,
-    onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(72.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.White,
-            contentColor = Navy
-        ),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Icon(
-                imageVector = icono,
-                contentDescription = null,
-                tint = Orange,
-                modifier = Modifier.size(28.dp)
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = titulo,
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Navy
-                )
-                Text(
-                    text = subtitulo,
-                    fontSize = 13.sp,
-                    color = Color(0xFF5B6B82)
-                )
+            when (seccionActual) {
+                SeccionApp.BUSCAR_NFC -> BuscarLlaveScreen()
+                SeccionApp.LLAVES -> LlavesScreen()
+                SeccionApp.PRESTAMOS -> LoansScreen()
+                SeccionApp.INCIDENCIAS -> IncidentsScreen(onSend = { _, _, _ -> })
+                SeccionApp.LOGIN -> LoginScreen()
             }
         }
     }

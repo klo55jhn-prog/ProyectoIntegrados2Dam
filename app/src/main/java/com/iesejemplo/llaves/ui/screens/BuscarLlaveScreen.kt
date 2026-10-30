@@ -19,19 +19,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Domain
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.MeetingRoom
 import androidx.compose.material.icons.filled.Nfc
-import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -53,7 +47,6 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import com.iesejemplo.llaves.ui.theme.AppLlavesTheme
 import com.iesejemplo.llaves.util.NfcBroadcastReceiver
-import kotlinx.coroutines.delay
 
 enum class PasoEscaner {
     PASO_1_NFC,
@@ -90,422 +83,360 @@ fun BuscarLlaveScreen() {
     NfcBroadcastReceiver { tag ->
         val tagIdHex = tag.id.joinToString("") { "%02X".format(it) }
         nfcTagId = tagIdHex
-        qrCarnetData = null // Resetea el carnet anterior para exigir un nuevo escaneo de carnet
+        qrCarnetData = null // Resetea el carnet anterior para exigir un nuevo escaneo
         
-        // Solicitar permiso de cámara si no lo tiene
         if (!hasCameraPermission) {
             permissionLauncher.launch(Manifest.permission.CAMERA)
         }
         
-        // Transición automática al PASO 2 (Cámara QR)
+        // Transición automática instantánea al PASO 2 (Cámara QR)
         pasoActual = PasoEscaner.PASO_2_CAMARA_QR
     }
 
-    Scaffold(
-        containerColor = screenBackground,
-        bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                contentColor = Color.Black
-            ) {
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.GridView, contentDescription = "Llaves") },
-                    label = { Text("Llaves") },
-                    selected = false,
-                    onClick = { },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = screenBackground,
-                        selectedTextColor = screenBackground,
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray,
-                        indicatorColor = Color.Transparent
-                    )
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Préstamos") },
-                    label = { Text("Préstamos") },
-                    selected = false,
-                    onClick = { },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = screenBackground,
-                        selectedTextColor = screenBackground,
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray,
-                        indicatorColor = Color.Transparent
-                    )
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Nfc, contentDescription = "NFC") },
-                    label = { Text("NFC") },
-                    selected = true,
-                    onClick = { },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = screenBackground,
-                        selectedTextColor = screenBackground,
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray,
-                        indicatorColor = Color.Transparent
-                    )
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Warning, contentDescription = "Incidencias") },
-                    label = { Text("Incidencias") },
-                    selected = false,
-                    onClick = { },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = screenBackground,
-                        selectedTextColor = screenBackground,
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray,
-                        indicatorColor = Color.Transparent
-                    )
-                )
-            }
-        }
-    ) { innerPadding ->
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(screenBackground)
+            .statusBarsPadding()
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Título principal
+        Text(
+            text = "Verificación de Acceso",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Título
-            Text(
-                text = "Verificación de Acceso",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-            )
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        )
 
-            // Indicador de Pasos del proceso
-            IndicadorPasos(pasoActual = pasoActual)
+        // Indicador de Pasos del proceso
+        IndicadorPasos(pasoActual = pasoActual)
 
-            Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-            // CONTENIDO SEGÚN EL PASO ACTUAL
-            when (pasoActual) {
-                PasoEscaner.PASO_1_NFC -> {
-                    // PASO 1: Escanear tarjeta NFC
+        // CONTENIDO SEGÚN EL PASO ACTUAL
+        when (pasoActual) {
+            PasoEscaner.PASO_1_NFC -> {
+                // PASO 1: Escanear tarjeta NFC
+                Box(
+                    modifier = Modifier
+                        .size(240.dp)
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
                     Box(
                         modifier = Modifier
                             .size(240.dp)
-                            .weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(240.dp)
-                                .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(180.dp)
-                                .border(1.dp, Color.White.copy(alpha = 0.25f), CircleShape)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(130.dp)
-                                .border(1.dp, orangeCircle.copy(alpha = 0.6f), CircleShape)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(80.dp)
-                                .clip(CircleShape)
-                                .background(orangeCircle),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Nfc,
-                                contentDescription = "Escanear NFC",
-                                tint = Color.White,
-                                modifier = Modifier.size(44.dp)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "1. Escanea la tarjeta NFC",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                            .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape)
                     )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = "Acerca la tarjeta NFC de la llave al teléfono",
-                        fontSize = 14.sp,
-                        color = Color.White.copy(alpha = 0.8f),
-                        textAlign = TextAlign.Center
-                    )
-                }
-
-                PasoEscaner.PASO_2_CAMARA_QR -> {
-                    // PASO 2: Apertura automática de cámara para QR de Carnet
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(260.dp)
-                            .weight(1f)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(Color.Black),
+                            .size(180.dp)
+                            .border(1.dp, Color.White.copy(alpha = 0.25f), CircleShape)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(130.dp)
+                            .border(1.dp, orangeCircle.copy(alpha = 0.6f), CircleShape)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(CircleShape)
+                            .background(orangeCircle),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (hasCameraPermission) {
-                            key(pasoActual, nfcTagId) {
-                                CameraQrScannerView(
-                                    onQrCodeScanned = { code ->
-                                        qrCarnetData = code
-                                        // Transición automática al PASO 3 (Resultado) sin tocar nada
-                                        pasoActual = PasoEscaner.PASO_3_RESULTADO
-                                    }
-                                )
-                            }
-                        } else {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier.padding(16.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.CameraAlt,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(48.dp)
-                                )
-                                Spacer(Modifier.height(12.dp))
-                                Text(
-                                    "Se requiere permiso de cámara para leer tu carnet",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
-                                    textAlign = TextAlign.Center
-                                )
-                                Spacer(Modifier.height(12.dp))
-                                Button(
-                                    onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) },
-                                    colors = ButtonDefaults.buttonColors(containerColor = orangeCircle)
-                                ) {
-                                    Text("Conceder Permiso")
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "2. Escanea tu Carnet",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = "Enfoca el código QR de tu carnet de estudiante con la cámara",
-                        fontSize = 14.sp,
-                        color = Color.White.copy(alpha = 0.8f),
-                        textAlign = TextAlign.Center
-                    )
-                }
-
-                PasoEscaner.PASO_3_RESULTADO -> {
-                    // PASO 3: Muestra la información de la sala, edificio y número de clase
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(24.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(24.dp),
-                                horizontalAlignment = Alignment.Start
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Default.CheckCircle,
-                                        contentDescription = null,
-                                        tint = Color(0xFF2E7D32),
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                    Text(
-                                        text = "Acceso Autorizado",
-                                        fontSize = 20.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF2E7D32)
-                                    )
-                                }
-
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(vertical = 16.dp),
-                                    color = Color(0xFFE0E0E0)
-                                )
-
-                                ItemInfoAcceso(
-                                    icono = Icons.Default.Domain,
-                                    label = "EDIFICIO",
-                                    valor = "Edificio Principal (Aulario U-Tad)"
-                                )
-
-                                Spacer(modifier = Modifier.height(14.dp))
-
-                                ItemInfoAcceso(
-                                    icono = Icons.Default.MeetingRoom,
-                                    label = "SALA / AULA",
-                                    valor = "Aula 102 - Laboratorio de Desarrollo"
-                                )
-
-                                Spacer(modifier = Modifier.height(14.dp))
-
-                                ItemInfoAcceso(
-                                    icono = Icons.Default.GridView,
-                                    label = "NÚMERO DE CLASE",
-                                    valor = "Planta 1 · Clase 102"
-                                )
-
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(vertical = 16.dp),
-                                    color = Color(0xFFE0E0E0)
-                                )
-
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Column {
-                                        Text(
-                                            text = "Tarjeta NFC",
-                                            fontSize = 12.sp,
-                                            color = Color.Gray
-                                        )
-                                        Text(
-                                            text = nfcTagId ?: "04A1B2C3",
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFF0F264A)
-                                        )
-                                    }
-
-                                    Column(horizontalAlignment = Alignment.End) {
-                                        Text(
-                                            text = "Carnet Estudiante",
-                                            fontSize = 12.sp,
-                                            color = Color.Gray
-                                        )
-                                        Text(
-                                            text = qrCarnetData ?: "EST-2026-948",
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFF0F264A)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        text = "¡Verificación completada!",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF81C784)
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = "Acerca otra tarjeta NFC para registrar una nueva llave",
-                        fontSize = 13.sp,
-                        color = Color.White.copy(alpha = 0.8f),
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Botón para escanear otra llave
-                    OutlinedButton(
-                        onClick = {
-                            pasoActual = PasoEscaner.PASO_1_NFC
-                            nfcTagId = null
-                            qrCarnetData = null
-                        },
-                        shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color.White
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(20.dp))
-                            Text(
-                                text = "Escanear otra llave",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Nfc,
+                            contentDescription = "Escanear NFC",
+                            tint = Color.White,
+                            modifier = Modifier.size(44.dp)
+                        )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "1. Escanea la tarjeta NFC",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = "Acerca la tarjeta NFC de la llave al teléfono",
+                    fontSize = 14.sp,
+                    color = Color.White.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center
+                )
             }
 
-            // Botón Reiniciar Proceso en los pasos 1 y 2
-            if (pasoActual != PasoEscaner.PASO_3_RESULTADO) {
-                Spacer(modifier = Modifier.height(20.dp))
-                OutlinedButton(
+            PasoEscaner.PASO_2_CAMARA_QR -> {
+                // PASO 2: Apertura automática de cámara para QR de Carnet
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(260.dp)
+                        .weight(1f)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color.Black),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (hasCameraPermission) {
+                        key(pasoActual, nfcTagId) {
+                            CameraQrScannerView(
+                                onQrCodeScanned = { code ->
+                                    qrCarnetData = code
+                                    // Transición automática instantánea al PASO 3 (Resultado)
+                                    pasoActual = PasoEscaner.PASO_3_RESULTADO
+                                }
+                            )
+                        }
+                    } else {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.CameraAlt,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Text(
+                                "Se requiere permiso de cámara para leer tu carnet",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Button(
+                                onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+                                colors = ButtonDefaults.buttonColors(containerColor = orangeCircle)
+                            ) {
+                                Text("Conceder Permiso")
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "2. Escanea tu Carnet",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = "Enfoca el código QR de tu carnet de estudiante con la cámara",
+                    fontSize = 14.sp,
+                    color = Color.White.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            PasoEscaner.PASO_3_RESULTADO -> {
+                // PASO 3: Información de la sala, edificio y número de clase
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = Color(0xFF2E7D32),
+                                    modifier = Modifier.size(28.dp)
+                                )
+                                Text(
+                                    text = "Acceso Autorizado",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF2E7D32)
+                                )
+                            }
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 16.dp),
+                                color = Color(0xFFE0E0E0)
+                            )
+
+                            ItemInfoAcceso(
+                                icono = Icons.Default.Domain,
+                                label = "EDIFICIO",
+                                valor = "Edificio Principal (Aulario U-Tad)"
+                            )
+
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            ItemInfoAcceso(
+                                icono = Icons.Default.MeetingRoom,
+                                label = "SALA / AULA",
+                                valor = "Aula 102 - Laboratorio de Desarrollo"
+                            )
+
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            ItemInfoAcceso(
+                                icono = Icons.Default.GridView,
+                                label = "NÚMERO DE CLASE",
+                                valor = "Planta 1 · Clase 102"
+                            )
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 16.dp),
+                                color = Color(0xFFE0E0E0)
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "Tarjeta NFC",
+                                        fontSize = 12.sp,
+                                        color = Color.Gray
+                                    )
+                                    Text(
+                                        text = nfcTagId ?: "04A1B2C3",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF0F264A)
+                                    )
+                                }
+
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text(
+                                        text = "Carnet Estudiante",
+                                        fontSize = 12.sp,
+                                        color = Color.Gray
+                                    )
+                                    Text(
+                                        text = qrCarnetData ?: "EST-2026-948",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF0F264A)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "¡Verificación completada!",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF81C784)
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "Acerca otra tarjeta NFC para registrar una nueva llave",
+                    fontSize = 13.sp,
+                    color = Color.White.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Botón elegante para Iniciar Nuevo Escaneo
+                Button(
                     onClick = {
                         pasoActual = PasoEscaner.PASO_1_NFC
                         nfcTagId = null
                         qrCarnetData = null
                     },
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
-                    colors = ButtonDefaults.outlinedButtonColors(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = orangeCircle,
                         contentColor = Color.White
                     ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
+                        .height(52.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(22.dp))
                         Text(
-                            text = "Reiniciar Proceso",
-                            fontSize = 16.sp,
+                            text = "Escanear Nueva Llave",
+                            fontSize = 17.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
         }
+
+        // Botón Reiniciar Proceso en los pasos 1 y 2
+        if (pasoActual != PasoEscaner.PASO_3_RESULTADO) {
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedButton(
+                onClick = {
+                    pasoActual = PasoEscaner.PASO_1_NFC
+                    nfcTagId = null
+                    qrCarnetData = null
+                },
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = Color.White
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Text(
+                        text = "Reiniciar Proceso",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
     }
 }
 
