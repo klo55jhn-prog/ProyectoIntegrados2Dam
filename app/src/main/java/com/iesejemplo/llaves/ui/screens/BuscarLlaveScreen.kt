@@ -16,8 +16,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
@@ -98,6 +100,7 @@ fun BuscarLlaveScreen() {
             .fillMaxSize()
             .background(screenBackground)
             .statusBarsPadding()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -123,28 +126,28 @@ fun BuscarLlaveScreen() {
                 // PASO 1: Escanear tarjeta NFC
                 Box(
                     modifier = Modifier
-                        .size(240.dp)
-                        .weight(1f),
+                        .size(220.dp)
+                        .padding(vertical = 8.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(240.dp)
+                            .size(220.dp)
                             .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape)
                     )
                     Box(
                         modifier = Modifier
-                            .size(180.dp)
+                            .size(160.dp)
                             .border(1.dp, Color.White.copy(alpha = 0.25f), CircleShape)
                     )
                     Box(
                         modifier = Modifier
-                            .size(130.dp)
+                            .size(110.dp)
                             .border(1.dp, orangeCircle.copy(alpha = 0.6f), CircleShape)
                     )
                     Box(
                         modifier = Modifier
-                            .size(80.dp)
+                            .size(72.dp)
                             .clip(CircleShape)
                             .background(orangeCircle),
                         contentAlignment = Alignment.Center
@@ -153,7 +156,7 @@ fun BuscarLlaveScreen() {
                             imageVector = Icons.Default.Nfc,
                             contentDescription = "Escanear NFC",
                             tint = Color.White,
-                            modifier = Modifier.size(44.dp)
+                            modifier = Modifier.size(40.dp)
                         )
                     }
                 }
@@ -182,8 +185,7 @@ fun BuscarLlaveScreen() {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(260.dp)
-                        .weight(1f)
+                        .height(240.dp)
                         .clip(RoundedCornerShape(20.dp))
                         .background(Color.Black),
                     contentAlignment = Alignment.Center
@@ -253,7 +255,7 @@ fun BuscarLlaveScreen() {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
+                        .padding(vertical = 8.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
                     Card(
